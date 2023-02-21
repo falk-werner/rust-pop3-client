@@ -70,12 +70,15 @@ impl Pop3Connection {
     /// # Examples
     ///
     /// ```
+    /// use rust_pop3_client::Pop3Connection;
+    /// use rustls::RootCertStore;
+    ///
     /// let mut root_store = RootCertStore::empty();
     /// for cert in rustls_native_certs::load_native_certs().unwrap() {
     ///     root_store.add(&rustls::Certificate(cert.0)).unwrap();
     /// }
     /// 
-    /// let connection = Pop3Connection::with_custom_certs(host, port, root_store);
+    /// let connection = Pop3Connection::with_custom_certs("", 995, root_store);
     /// ```
     pub fn with_custom_certs(host: &str, port: u16, root_store: RootCertStore) -> Result<Pop3Connection, Box<dyn Error>> {
         let config = rustls::ClientConfig::builder()
