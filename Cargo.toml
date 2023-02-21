@@ -1,9 +1,15 @@
 [package]
 name = "rust-pop3-client"
 version = "0.2.0"
-edition = "2021"
+description = "POP3 client based on rustls"
+license = "MPL-2.0"
+homepage = "https://github.com/falk-werner/rust-pop3-client"
+repository = "https://github.com/falk-werner/rust-pop3-client"
+readme = "README.md"
+keywords = ["pop3", "email"]
+categories = ["network-programming"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+edition = "2021"
 
 [dependencies]
 rustls-native-certs = "0.6"
