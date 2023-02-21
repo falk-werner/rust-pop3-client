@@ -15,7 +15,7 @@ POP3 client for rust using rutls.
 _Cargo.toml:_
 ````toml
 [dependencies]
-rust-pop3-client { git = "https://github.com/falk-werner/rust-pop3-client" }
+rust-pop3-client = { git = "https://github.com/falk-werner/rust-pop3-client" }
 ````
 
 ## Example
