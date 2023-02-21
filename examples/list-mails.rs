@@ -1,26 +1,3 @@
-# rust-pop3-client
-
-POP3 client for rust using rutls.
-
-## Features
-
-- provides all mandatory POP3 commands
-- provides most optional POP3 commands  
-  _(APOP is not provided, since it is not used often)_
-- allow to specify own certificates  
-  _(a `rustls::RootCertStore` instance can be provided, if not system certificates will be used)_
-
-## Depedency
-
-_Cargo.toml:_
-````toml
-[dependencies]
-rust-pop3-client { git = "https://github.com/falk-werner/rust-pop3-client" }
-````
-
-## Example
-
-````rust
 use std::error::Error;
 use std::io::{self, Write};
 
@@ -59,14 +36,3 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
-````
-
-
-## Similar projects
-
-- [rust-pop3](https://crates.io/crates/pop3)  
-  _(Seems promising, but is based on an outdated version of OpenSSL.)_
-
-## References
-
-- [RFC1939: Post Office Protocol - Version 3](https://www.rfc-editor.org/rfc/rfc1939)
