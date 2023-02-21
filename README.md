@@ -1,3 +1,5 @@
+![crates.io](https://img.shields.io/crates/v/rust-pop3-client.svg)
+
 # rust-pop3-client
 
 POP3 client for rust using rutls.
