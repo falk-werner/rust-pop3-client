@@ -1,4 +1,4 @@
-![[crates.io](https://crates.io/crates/rust-pop3-client)](https://img.shields.io/crates/v/rust-pop3-client.svg)
+[![crates.io]](https://img.shields.io/crates/v/rust-pop3-client.svg)](https://crates.io/crates/rust-pop3-client)
 
 # rust-pop3-client
 
