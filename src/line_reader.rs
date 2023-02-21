@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::str::from_utf8;
 use std::io::Read;
 
 const BUFFER_SIZE : usize = 512;
@@ -41,7 +40,8 @@ impl LineReader {
         }
 
         if let Some(eol) = self.get_eol() {
-            let line = from_utf8(& self.buffer[0..eol])?.trim().to_string();
+            let line = String::from_utf8_lossy(& self.buffer[0..eol]).into_owned();
+            let line = line.trim();
             let pos = eol + 1;
             self.buffer.copy_within(pos.., 0);
             self.pos -= pos;
