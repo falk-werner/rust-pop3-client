@@ -1,6 +1,6 @@
 [package]
 name = "rust-pop3-client"
-version = "0.2.0"
+version = "0.2.1"
 description = "POP3 client based on rustls"
 license = "MPL-2.0"
 homepage = "https://github.com/falk-werner/rust-pop3-client"
