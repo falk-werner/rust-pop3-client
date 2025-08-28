@@ -93,7 +93,7 @@ impl Pop3Connection {
         let tls = rustls::StreamOwned::new(connection, stream);
 
         let mut client = Pop3Connection { 
-            tls: tls,
+            tls,
             reader: LineReader::new()
         };
 
@@ -111,12 +111,12 @@ impl Pop3Connection {
     }
 
     fn invoke_single_line(&mut self, command: &str) -> Result<String, Box<dyn Error>> {
-        self.tls.write(command.as_bytes())?;
+        self.tls.write_all(command.as_bytes())?;
         self.read_status_line()
     }
 
     fn invoke_multi_line(&mut self, command: &str) -> Result<Vec<String>, Box<dyn Error>> {
-        self.tls.write(command.as_bytes())?;
+        self.tls.write_all(command.as_bytes())?;
         self.read_status_line()?;
 
         let mut response : Vec<String> = vec!();
@@ -157,7 +157,7 @@ impl Pop3Connection {
         let maildrop_size = stat.next().ok_or("missing maildrop size")?;
         let maildrop_size = maildrop_size.parse::<u32>()?;
 
-        Ok(Pop3Stat { message_count: message_count, maildrop_size: maildrop_size })
+        Ok(Pop3Stat { message_count, maildrop_size })
     }
 
     /// Returns id and size of each message.
@@ -169,10 +169,7 @@ impl Pop3Connection {
             let message_id = info.next().ok_or("missing id")?.parse::<u32>()?;
             let message_size = info.next().ok_or("missing size")?.parse::<u32>()?;
 
-            result.push(Pop3MessageInfo { 
-                message_id: message_id, 
-                message_size: message_size
-            });
+            result.push(Pop3MessageInfo { message_id, message_size });
         }
 
         Ok(result)
@@ -202,8 +199,8 @@ impl Pop3Connection {
     pub fn retrieve(&mut self, message_id: u32, writer: &mut impl Write) -> Result<(), Box<dyn Error>> {
         let lines = self.invoke_multi_line(&format!("RETR {}\r\n", message_id))?;
         for line in lines {
-            writer.write(line.as_bytes())?;
-            writer.write(b"\n")?;
+            writer.write_all(line.as_bytes())?;
+            writer.write_all(b"\n")?;
         }
 
         Ok(())
@@ -252,7 +249,7 @@ impl Pop3Connection {
             let message_id = info.next().ok_or("missing id")?.parse::<u32>()?;
             let unique_id = info.next().ok_or("missing unique id")?.to_string();
 
-            result.push(Pop3MessageUidInfo { message_id: message_id, unique_id: unique_id });
+            result.push(Pop3MessageUidInfo { message_id, unique_id });
         }
 
         Ok(result)
