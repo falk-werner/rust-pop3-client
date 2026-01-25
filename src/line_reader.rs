@@ -41,7 +41,8 @@ impl LineReader {
 
         if let Some(eol) = self.get_eol() {
             let line = String::from_utf8_lossy(& self.buffer[0..eol]).into_owned();
-            let line = line.trim();
+            let eol_chars: &[_] = &['\r', '\n'];
+            let line = line.trim_end_matches(eol_chars);
             let pos = eol + 1;
             self.buffer.copy_within(pos.., 0);
             self.pos -= pos;
