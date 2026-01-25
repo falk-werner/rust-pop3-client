@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::io::Read;
 
-const BUFFER_SIZE : usize = 512;
+const BUFFER_SIZE : usize = 2048;
 const EOL : u8 = 0x0a;
 
 pub struct LineReader {
@@ -97,7 +97,7 @@ mod tests {
     #[test]
     fn test_read_buffer_exceeded() {
         let mut reader = LineReader::new();
-        let data = [0; 512];
+        let data = [0; 2048];
         let mut slice: &[u8] = data.as_ref();
         let line = reader.read_line(&mut slice);
         assert!(line.is_err());
