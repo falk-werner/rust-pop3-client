@@ -4,8 +4,8 @@ use clap::Parser;
 
 extern crate rust_pop3_client;
 
+use rust_pop3_client::Pop3ConnectionFactory;
 use rust_pop3_client::Pop3Connection;
-use rust_pop3_client::Pop3Conn;
 
 
 #[derive(Parser, Debug)]
@@ -38,19 +38,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let password = read_password("password")?;
 
-    let mut connection: Box<dyn Pop3Conn> = match args.disable_tls {
-        true => Box::new(Pop3Connection::new(&args.server, args.port)?),
-        false => Box::new(Pop3Connection::without_tls(&args.server, args.port)?)
+    let mut connection: Box<dyn Pop3Connection> = match args.disable_tls {
+        true => Box::new(Pop3ConnectionFactory::new(&args.server, args.port)?),
+        false => Box::new(Pop3ConnectionFactory::without_tls(&args.server, args.port)?)
     };
 
 
     connection.login(&args.username, &password)?;
+    println!("id\tsize");
+    let infos = connection.list()?;
+    for info in infos {
+        println!("{}\t{}", info.message_id, info.message_size);
+    }
     Ok(())
-
-//        println!("id\tsize");
-//        let infos = connection.list()?;
-//        for info in infos {
-//            println!("{}\t{}", info.message_id, info.message_size);
-//        }
-//
 }
