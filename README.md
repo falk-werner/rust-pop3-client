@@ -18,7 +18,7 @@ POP3 client for rust using rutls.
 _Cargo.toml:_
 ````toml
 [dependencies]
-rust-pop3-client = "0.2"
+rust-pop3-client = "0.3"
 ````
 
 ## Example
