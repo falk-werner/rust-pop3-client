@@ -19,3 +19,5 @@ jobs:
         run: cargo clippy
       - name: Test
         run: cargo test
+      - name: Build Examples 
+        run: cargo build --examples
