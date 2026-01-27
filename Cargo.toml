@@ -9,7 +9,7 @@ readme = "README.md"
 keywords = ["pop3", "email"]
 categories = ["network-programming"]
 
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 rustls-native-certs = "0.6"
