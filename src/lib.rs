@@ -3,16 +3,14 @@ mod line_reader;
 use std::sync::Arc;
 use std::net::TcpStream;
 use std::error::Error;
-use std::io::{Write};
+use std::io::{Read, Write};
 
 use rustls::{RootCertStore, ClientConnection, StreamOwned};
 
 use line_reader::LineReader;
 
-/// POP3 connection
-pub struct Pop3Connection {    
-    tls: StreamOwned<ClientConnection, TcpStream>,
-    reader: LineReader,
+pub struct Pop3Connection {
+
 }
 
 /// POP3 maildrop statistics
@@ -42,15 +40,36 @@ pub struct Pop3MessageUidInfo {
     pub unique_id: String,
 }
 
-impl Pop3Connection {
+/// POP3 connection
+pub struct Pop3ConnectionCommon<T> where T: Read + Write {
+    tls: T,
+    reader: LineReader,
+}
 
+pub trait Pop3Conn {
+    
+    /// Authenticate a POP3 session using username and password.
+    ///
+    /// This is usually the first set of commands after a POP3 session
+    /// is established.
+    ///
+    /// # Arguments
+    ///
+    /// * `user`     - Name of the user, typically it's e-mail address.
+    /// * `password` - Password of the user. 
+    fn login(&mut self, user: &str, password: &str) -> Result<(), Box<dyn Error>>;
+
+
+}
+
+impl Pop3Connection {
     /// Returns a new POP3 connection.
     ///
     /// # Arguments
     ///
     /// * `host` - IP-Address or host name of the POP3 server to connect
     /// * `port` - Port of the POP3 server to connect
-    pub fn new(host: &str, port: u16) -> Result<Pop3Connection, Box<dyn Error>> {
+    pub fn new(host: &str, port: u16) -> Result<Pop3ConnectionCommon<StreamOwned<ClientConnection, TcpStream>>, Box<dyn Error>> {
         let mut root_store = RootCertStore::empty();
         for cert in rustls_native_certs::load_native_certs()? {
             root_store.add(&rustls::Certificate(cert.0))?;
@@ -80,7 +99,7 @@ impl Pop3Connection {
     /// 
     /// let connection = Pop3Connection::with_custom_certs("", 995, root_store);
     /// ```
-    pub fn with_custom_certs(host: &str, port: u16, root_store: RootCertStore) -> Result<Pop3Connection, Box<dyn Error>> {
+    pub fn with_custom_certs(host: &str, port: u16, root_store: RootCertStore) -> Result<Pop3ConnectionCommon<StreamOwned<ClientConnection, TcpStream>>, Box<dyn Error>> {
         let config = rustls::ClientConfig::builder()
             .with_safe_defaults()
             .with_root_certificates(root_store)
@@ -92,7 +111,7 @@ impl Pop3Connection {
         let stream =  TcpStream::connect(format!("{}:{}", host, port))?;
         let tls = rustls::StreamOwned::new(connection, stream);
 
-        let mut client = Pop3Connection { 
+        let mut client = Pop3ConnectionCommon { 
             tls,
             reader: LineReader::new()
         };
@@ -100,6 +119,28 @@ impl Pop3Connection {
         client.read_status_line()?;
         Ok(client)
     }
+
+    /// Returns a new POP3 conneciton without TLS.
+    /// 
+    /// # Argumetns
+    /// 
+    /// * `host` - IP-Address or host name of the POP3 server to connect
+    /// * `port` - Port of the POP3 server to connect
+    pub fn without_tls(host: &str, port: u16) -> Result<Pop3ConnectionCommon<TcpStream>, Box<dyn Error>> {
+        let tls =  TcpStream::connect(format!("{}:{}", host, port))?;
+        let mut client = Pop3ConnectionCommon { 
+            tls,
+            reader: LineReader::new()
+        };
+        client.read_status_line()?;
+        Ok(client)
+    }
+
+}
+
+
+impl<T> Pop3ConnectionCommon<T> where T: Read + Write {
+
 
     fn read_status_line(&mut self) -> Result<String, Box<dyn Error>> {
         let line = self.reader.read_line(&mut self.tls)?;
@@ -132,20 +173,6 @@ impl Pop3Connection {
         Ok(response)
     }
 
-    /// Authenticate a POP3 session using username and password.
-    ///
-    /// This is usually the first set of commands after a POP3 session
-    /// is established.
-    ///
-    /// # Arguments
-    ///
-    /// * `user`     - Name of the user, typically it's e-mail address.
-    /// * `password` - Password of the user. 
-    pub fn login(&mut self, user: &str, password: &str) -> Result<(), Box<dyn Error>> {
-        self.invoke_single_line(&format!("USER {}\r\n", user))?;
-        self.invoke_single_line(&format!("PASS {}\r\n", password))?;
-        Ok(())
-    }
 
     /// Returns maildrop statistics.
     pub fn stat(&mut self) -> Result<Pop3Stat, Box<dyn Error>> {
@@ -271,7 +298,27 @@ impl Pop3Connection {
     }
 }
 
-impl Drop for Pop3Connection {
+impl<T> Pop3Conn for Pop3ConnectionCommon<T> where T: Read + Write {
+
+    /// Authenticate a POP3 session using username and password.
+    ///
+    /// This is usually the first set of commands after a POP3 session
+    /// is established.
+    ///
+    /// # Arguments
+    ///
+    /// * `user`     - Name of the user, typically it's e-mail address.
+    /// * `password` - Password of the user. 
+    fn login(&mut self, user: &str, password: &str) -> Result<(), Box<dyn Error>> {
+        self.invoke_single_line(&format!("USER {}\r\n", user))?;
+        self.invoke_single_line(&format!("PASS {}\r\n", password))?;
+        Ok(())
+    }
+
+
+}
+
+impl<T> Drop for Pop3ConnectionCommon<T> where T: Read + Write {
     /// Closes POP3 connection on drop.
     fn drop(&mut self) {
         let _ = self.invoke_single_line("QUIT\r\n");
