@@ -282,7 +282,7 @@ dependencies = [
 
 [[package]]
 name = "rust-pop3-client"
-version = "0.2.3"
+version = "0.3.0"
 dependencies = [
  "clap",
  "rpassword",
