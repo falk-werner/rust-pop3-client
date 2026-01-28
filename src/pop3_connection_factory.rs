@@ -2,6 +2,7 @@ use std::sync::Arc;
 use std::net::TcpStream;
 use std::error::Error;
 
+use rustls::pki_types::ServerName;
 use rustls::{RootCertStore, ClientConnection, StreamOwned};
 
 use crate::LineReader;
@@ -21,7 +22,7 @@ impl Pop3ConnectionFactory {
     pub fn new(host: &str, port: u16) -> Result<Pop3ConnectionImpl<StreamOwned<ClientConnection, TcpStream>>, Box<dyn Error>> {
         let mut root_store = RootCertStore::empty();
         for cert in rustls_native_certs::load_native_certs().certs {
-            root_store.add(&rustls::Certificate(cert.to_vec()))?;
+            root_store.add(cert)?;
         }
 
         Pop3ConnectionFactory::with_custom_certs(host, port, root_store)
@@ -42,21 +43,20 @@ impl Pop3ConnectionFactory {
     /// use rustls::RootCertStore;
     ///
     /// let mut root_store = RootCertStore::empty();
-    /// for cert in rustls_native_certs::load_native_certs().unwrap() {
-    ///     root_store.add(&rustls::Certificate(cert.0)).unwrap();
+    /// for cert in rustls_native_certs::load_native_certs().certs {
+    ///     root_store.add(cert).unwrap();
     /// }
     /// 
     /// let connection = Pop3ConnectionFactory::with_custom_certs("", 995, root_store);
     /// ```
     pub fn with_custom_certs(host: &str, port: u16, root_store: RootCertStore) -> Result<Pop3ConnectionImpl<StreamOwned<ClientConnection, TcpStream>>, Box<dyn Error>> {
         let config = rustls::ClientConfig::builder()
-            .with_safe_defaults()
             .with_root_certificates(root_store)
             .with_no_client_auth();
 
-        let server_name = host.try_into()?;
+        let server_name = ServerName::try_from(host)?;
 
-        let connection = rustls::ClientConnection::new(Arc::new(config), server_name)?;
+        let connection = rustls::ClientConnection::new(Arc::new(config), server_name.to_owned())?;
         let stream =  TcpStream::connect(format!("{}:{}", host, port))?;
         let stream = rustls::StreamOwned::new(connection, stream);
 
