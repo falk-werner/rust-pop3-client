@@ -39,16 +39,30 @@ fn main() -> Result<(), Box<dyn Error>> {
     let password = read_password("password")?;
 
     let mut connection: Box<dyn Pop3Connection> = match args.disable_tls {
-        true => Box::new(Pop3ConnectionFactory::new(&args.server, args.port)?),
-        false => Box::new(Pop3ConnectionFactory::without_tls(&args.server, args.port)?)
+        true => Box::new(Pop3ConnectionFactory::without_tls(&args.server, args.port)?),
+        false => Box::new(Pop3ConnectionFactory::new(&args.server, args.port)?),
     };
 
 
     connection.login(&args.username, &password)?;
-    println!("id\tsize");
+    let stat = connection.stat()?;
+    println!("message count: {}", stat.message_count);
+    println!("maildrop size: {}", stat.maildrop_size);
+    println!();
+
+    println!("id\tsize\tsubject");
     let infos = connection.list()?;
     for info in infos {
-        println!("{}\t{}", info.message_id, info.message_size);
+        let header = connection.top(info.message_id, 0)?;
+        let mut subject = String::from("unknown");
+        for line in header.lines() {
+            if line.starts_with("Subject:") {
+                let sub: &str = &line[8..].trim();
+                subject.replace_range(..,sub);
+            }
+        }
+
+        println!("{}\t{}\t{}", info.message_id, info.message_size, subject);
     }
     Ok(())
 }
