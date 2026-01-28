@@ -12,9 +12,9 @@ categories = ["network-programming"]
 edition = "2024"
 
 [dependencies]
-rustls-native-certs = "0.6"
-rustls = "0.20"
+rustls-native-certs = "0.8"
+rustls = "0.21"
 
 [dev-dependencies]
 clap = { version = "4.5.54", features = ["derive"] }
-rpassword = "0.0.4"
+rpassword = "7.4.0"
