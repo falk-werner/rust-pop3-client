@@ -20,8 +20,8 @@ impl Pop3ConnectionFactory {
     /// * `port` - Port of the POP3 server to connect
     pub fn new(host: &str, port: u16) -> Result<Pop3ConnectionImpl<StreamOwned<ClientConnection, TcpStream>>, Box<dyn Error>> {
         let mut root_store = RootCertStore::empty();
-        for cert in rustls_native_certs::load_native_certs()? {
-            root_store.add(&rustls::Certificate(cert.0))?;
+        for cert in rustls_native_certs::load_native_certs().certs {
+            root_store.add(&rustls::Certificate(cert.to_vec()))?;
         }
 
         Pop3ConnectionFactory::with_custom_certs(host, port, root_store)
